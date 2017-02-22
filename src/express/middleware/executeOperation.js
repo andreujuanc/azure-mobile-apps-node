@@ -24,16 +24,31 @@ module.exports = function (operations) {
         context.operation = operation;
         context.next = next;
 
+        var result = context.configuration.executeBeforeOperation 
+                    ? context.configuration.executeBeforeOperation(context)
+                    : context.data; 
+        if (promises.isPromise(result)){
+            result.then(executeOperation);
+        }
+        else{
+            executeOperation(result);
+        }
         // if a custom operation has been defined, execute it
-        if (operations && operations[operation]) {
-            var results = operations[operation](context);
+        function executeOperation(newContextData){
+            if(typeof newContextData ==='undefined' || newContextData === null){
+                return; //TODO throw?
+            }
+            context.data = newContextData;
+            if (operations && operations[operation]) {
+                var results = operations[operation](context);
 
-            if (promises.isPromise(results))
-                results.then(setResults, next);
-            else
-                setResults(results);
-        } else {
-            execute().then(setResults, next);
+                if (promises.isPromise(results))
+                    results.then(setResults, next);
+                else
+                    setResults(results);
+            } else {
+                execute().then(setResults, next);
+            }
         }
 
         function execute() {

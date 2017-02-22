@@ -6,23 +6,54 @@ var mssql = require('mssql'),
     promises = require('../../utilities/promises'),
     errors = require('../../utilities/errors'),
     errorCodes = require('./errorCodes'),
-    log = require('../../logger'),
-    connection, connectionPromise;
+    log = require('../../logger');
+
+var connections = {};
 
 module.exports = function (config, statement) {
     if(statement.noop)
         return promises.resolved();
 
-    if (!connectionPromise) {
-        connection = new mssql.Connection(config);
-        connectionPromise = connection.connect()
-            .catch(function (err) {
-                connectionPromise = undefined;
-                throw err;
-            });
-    }
+    return getNewConnection()
+        .then(executeRequest);
+        
+    function getNewConnection() {
+        // if(connectionPromise){
+        //     connectionPromise = undefined;
+        //     log.verbose('Closing connection to '+ connection.config.database);
+        //     return connection.close().then(getNewConnection);
+        // }
+        var connection = null;
+        var connectionPromise = null;
 
-    return connectionPromise.then(executeRequest);
+        if (typeof connections[config.database] !== 'undefined' && config.database !== null) {
+            connection = connections[config.database].connection;
+            connectionPromise = connections[config.database].connectionPromise;
+        }
+        
+        if(connection !== null){
+            //check closed connection
+            if(!connection.connected || connection.connecting){
+                connection = null;
+            }
+        }
+
+        if (connection === null) {
+            log.verbose('Opening connection to ' + config.database);
+            var configClone = JSON.parse(JSON.stringify(config));
+            connection = new mssql.Connection(configClone);
+            connectionPromise = connection.connect()
+                .catch(function (err) {
+                    connectionPromise = undefined;
+                    throw err;
+                });
+            connections[config.database] = {};
+            connections[config.database].connection = connection;
+            connections[config.database].connectionPromise = connectionPromise;
+        }
+
+        return connectionPromise;
+    }
 
     function executeRequest() {
         var request = new mssql.Request(connection);
