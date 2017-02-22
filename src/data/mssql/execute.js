@@ -55,7 +55,7 @@ module.exports = function (config, statement) {
         return connectionPromise;
     }
 
-    function executeRequest() {
+    function executeRequest(connection) {
         var request = new mssql.Request(connection);
 
         request.multiple = statement.multiple;
