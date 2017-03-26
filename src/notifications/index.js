@@ -55,10 +55,10 @@ module.exports = function (configuration) {
         return mapRegistrations(installationIdAsTag, function (registration) { return registration.Tag });
     }
 
-    function addUserTag(tags, userId) {
+     function addUserTag(tags, userId) {
         if (userId) {
             tags = tags.filter(function (tag) {
-                return !(tag && tag.indexOf(UserIdTagPrefix) === 0);
+                return typeof tag !== 'undefined' && !(tag && tag.indexOf(UserIdTagPrefix) === 0);
             });
             tags.push(UserIdTagPrefix + userId);
         }
