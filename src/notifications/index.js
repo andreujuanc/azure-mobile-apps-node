@@ -76,9 +76,11 @@ module.exports = function (configuration) {
 
             function listRegistrations(top, skip) {
                 nhClient.listRegistrationsByTag(tag, { top: top, skip: skip }, function (err, res) {
-                    if (err) {
-                        reject(err);
+                    if(res === null) err = new Error('Could not get registration list by tag. index.js:82 ');
+                    if (err) {
+                        return reject(err);
                     }
+                    
                     results = results.concat(res.map(mapFunction));
                     if (res.length < top) {
                         result(results);
