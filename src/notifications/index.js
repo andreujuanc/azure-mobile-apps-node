@@ -52,7 +52,7 @@ module.exports = function (configuration) {
     function getTagsByInstallationId(installationId) {
         var installationIdAsTag = util.format(InstallationIdTag, installationId);
 
-        return mapRegistrations(installationIdAsTag, function (registration) { return registration.Tag });
+        return mapRegistrations(installationIdAsTag, function (registration) { return registration.Tags });
     }
 
      function addUserTag(tags, userId) {
