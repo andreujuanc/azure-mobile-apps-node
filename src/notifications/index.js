@@ -52,7 +52,15 @@ module.exports = function (configuration) {
     function getTagsByInstallationId(installationId) {
         var installationIdAsTag = util.format(InstallationIdTag, installationId);
 
-        return mapRegistrations(installationIdAsTag, function (registration) { return registration.Tags });
+        return mapRegistrations(installationIdAsTag, function (registration) {
+            var tags = [];
+            if (Array.isArray(registration.Tags))
+                tags = registration.Tags;
+            else
+                tags = registration.Tags.split(',');
+            tags = tags.filter(function (x) { return x.indexOf('$') < 0; });
+            return tags.join(',');
+        }); 
     }
 
      function addUserTag(tags, userId) {
